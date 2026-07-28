@@ -1,0 +1,10 @@
+{
+  "name": "Loloma Weather",
+  "short_name": "Weather",
+  "start_url": ".",
+  "scope": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#bd9a6c",
+  "theme_color": "#bd9a6c"
+}
