@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="600">
+<title>Loloma Weather</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--paper:#f3f1ea;--card:#fff;--ink:#2a2e35;--muted:#828a94;--line:#e7e4db;--green:#5bbb53}
+  html,body{height:100%;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:clamp(14px,3vw,48px)}
+  .frame{width:100%;max-width:min(1480px,94vw);background:linear-gradient(155deg,#d8b98f,#bd9a6c);
+    padding:clamp(12px,1.4vw,26px);border-radius:clamp(18px,1.8vw,32px);
+    box-shadow:0 18px 55px rgba(70,50,20,.28),inset 0 1px 2px rgba(255,255,255,.5)}
+  .screen{background:var(--card);border-radius:clamp(11px,1.2vw,20px);
+    padding:clamp(20px,2.4vw,46px) clamp(22px,2.8vw,54px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:clamp(10px,1vw,18px)}
+  .loc{font-size:clamp(22px,3.1vw,52px);font-weight:700;letter-spacing:-.01em;line-height:1.05}
+  .date{font-size:clamp(13px,1.5vw,24px);color:var(--muted);margin-top:2px;font-weight:500}
+  .upd{text-align:right;font-size:clamp(12px,1.25vw,20px);color:var(--muted);font-weight:500;line-height:1.5;white-space:nowrap}
+  .dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--green);margin-right:5px;vertical-align:middle}
+  .main{display:grid;grid-template-columns:1.05fr 1.35fr;gap:clamp(14px,2vw,40px);align-items:center;border-top:1px solid var(--line);padding-top:clamp(16px,2vw,36px)}
+  .hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+  .hero .ic{width:clamp(96px,13vw,230px);height:clamp(96px,13vw,230px)}
+  .temp{font-size:clamp(64px,11vw,190px);font-weight:700;letter-spacing:-.03em;line-height:1}
+  .temp sup{font-size:.4em;font-weight:600;top:-.72em;margin-left:2px}
+  .cond{font-size:clamp(18px,2.3vw,40px);font-weight:600}
+  .feels{font-size:clamp(13px,1.5vw,24px);color:var(--muted);font-weight:500}
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.6vw,30px) clamp(18px,2.4vw,50px)}
+  .m{display:flex;align-items:center;gap:clamp(10px,1vw,20px)}
+  .m .ic{width:clamp(34px,4vw,74px);height:clamp(34px,4vw,74px);flex:0 0 auto}
+  .m .mv{font-size:clamp(18px,2.3vw,42px);font-weight:700;line-height:1.05}
+  .m .ml{font-size:clamp(11px,1.15vw,19px);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-top:1px}
+  .fc{margin-top:clamp(18px,2vw,38px);border-top:1px solid var(--line);padding-top:clamp(14px,1.6vw,30px)}
+  .fc-row{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(6px,.8vw,16px)}
+  .day{text-align:center;padding:clamp(6px,.8vw,16px) 4px;border-radius:clamp(10px,1vw,18px)}
+  .day.today{background:#fbf4e6}
+  .day .dn{font-size:clamp(12px,1.3vw,22px);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .day .di{width:clamp(42px,5vw,92px);height:clamp(42px,5vw,92px);margin:4px auto 3px}
+  .day .hi{font-size:clamp(16px,2vw,36px);font-weight:700}
+  .day .lo{font-size:clamp(13px,1.4vw,26px);color:var(--muted);font-weight:600}
+  .cap{margin-top:clamp(10px,1vw,20px);font-size:clamp(10px,1.05vw,17px);color:var(--muted);text-align:center}
+  @media(max-width:620px){.main{grid-template-columns:1fr;gap:22px}.fc-row{grid-template-columns:repeat(3,1fr);gap:10px}.upd{white-space:normal}}
+  /* --- The Frame TV / big-screen: fill the 16:9 panel edge-to-edge (no wasted paper margin) --- */
+  @media(min-width:1500px){
+    body{padding:0}
+    .frame{max-width:none;width:100%;min-height:100vh;border-radius:0;padding:clamp(12px,0.9vw,20px);display:flex;align-items:stretch}
+    .screen{flex:1;border-radius:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(26px,2.6vw,54px) clamp(44px,4.4vw,100px)}
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-sun" viewBox="0 0 64 64"><g stroke="#f4a72b" stroke-width="4.5" stroke-linecap="round"><line x1="32" y1="4" x2="32" y2="13"/><line x1="32" y1="51" x2="32" y2="60"/><line x1="4" y1="32" x2="13" y2="32"/><line x1="51" y1="32" x2="60" y2="32"/><line x1="12" y1="12" x2="18" y2="18"/><line x1="46" y1="46" x2="52" y2="52"/><line x1="52" y1="12" x2="46" y2="18"/><line x1="18" y1="46" x2="12" y2="52"/></g><circle cx="32" cy="32" r="14" fill="#f4a72b"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 64 64"><path d="M44 42a20 20 0 1 1-13-37 16 16 0 0 0 13 37z" fill="#f4c94b"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 64 64"><path d="M18 46a12 12 0 0 1 .8-23.9A16 16 0 0 1 49 24.5a11 11 0 0 1-1.3 21.5z" fill="#c2cbd5" stroke="#aeb8c3" stroke-width="1.5"/></symbol>
+  <symbol id="i-partly" viewBox="0 0 64 64"><g stroke="#f4a72b" stroke-width="3.6" stroke-linecap="round"><line x1="22" y1="6" x2="22" y2="13"/><line x1="6" y1="22" x2="13" y2="22"/><line x1="10" y1="10" x2="15" y2="15"/><line x1="34" y1="10" x2="29" y2="15"/></g><circle cx="22" cy="22" r="9.5" fill="#f4a72b"/><path d="M22 50a11 11 0 0 1 .7-21.9A15 15 0 0 1 51 30a10 10 0 0 1-1.2 20z" fill="#cdd5de" stroke="#aeb8c3" stroke-width="1.5"/></symbol>
+  <symbol id="i-rain" viewBox="0 0 64 64"><path d="M18 40a11 11 0 0 1 .7-21.9A15 15 0 0 1 47 20a10 10 0 0 1-1.2 20z" fill="#aeb8c3"/><g stroke="#4c9be8" stroke-width="4" stroke-linecap="round"><line x1="22" y1="46" x2="19" y2="55"/><line x1="33" y1="46" x2="30" y2="55"/><line x1="44" y1="46" x2="41" y2="55"/></g></symbol>
+  <symbol id="i-sunrise" viewBox="0 0 64 64"><line x1="6" y1="52" x2="58" y2="52" stroke="#f4a72b" stroke-width="4" stroke-linecap="round"/><path d="M18 52a14 14 0 0 1 28 0" fill="#f4a72b"/><g stroke="#f4a72b" stroke-width="4" stroke-linecap="round"><line x1="32" y1="6" x2="32" y2="16"/><line x1="12" y1="30" x2="18" y2="36"/><line x1="52" y1="30" x2="46" y2="36"/></g><path d="M27 22l5-6 5 6" fill="none" stroke="#e8842c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-sunset" viewBox="0 0 64 64"><line x1="6" y1="52" x2="58" y2="52" stroke="#e8842c" stroke-width="4" stroke-linecap="round"/><path d="M18 52a14 14 0 0 1 28 0" fill="#e8842c"/><g stroke="#e8842c" stroke-width="4" stroke-linecap="round"><line x1="12" y1="30" x2="18" y2="36"/><line x1="52" y1="30" x2="46" y2="36"/></g><path d="M27 12l5 6 5-6" fill="none" stroke="#e8842c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 64 64"><g fill="none" stroke="#7a828c" stroke-width="4.5" stroke-linecap="round"><path d="M8 24h30a7 7 0 1 0-7-7"/><path d="M8 36h40a7 7 0 1 1-7 7"/><path d="M8 48h20"/></g></symbol>
+  <symbol id="i-gauge" viewBox="0 0 64 64"><path d="M12 46a22 22 0 1 1 40 0" fill="none" stroke="#aeb8c3" stroke-width="5" stroke-linecap="round"/><line x1="32" y1="46" x2="44" y2="26" stroke="#e8663c" stroke-width="4.5" stroke-linecap="round"/><circle cx="32" cy="46" r="5" fill="#2a2e35"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 64 64"><path d="M32 8s16 18 16 30a16 16 0 0 1-32 0C16 26 32 8 32 8z" fill="#4c9be8"/><path d="M38 30a8 10 0 0 1 2 9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/></symbol>
+  <symbol id="i-uv" viewBox="0 0 64 64"><g stroke="#5bbb53" stroke-width="4.5" stroke-linecap="round"><line x1="32" y1="5" x2="32" y2="14"/><line x1="5" y1="32" x2="14" y2="32"/><line x1="50" y1="32" x2="59" y2="32"/><line x1="13" y1="13" x2="19" y2="19"/><line x1="51" y1="13" x2="45" y2="19"/></g><circle cx="32" cy="34" r="13" fill="#5bbb53"/><text x="32" y="39" text-anchor="middle" font-size="14" font-weight="800" fill="#fff" font-family="Arial">UV</text></symbol>
+</defs></svg>
+
+<div class="frame"><div class="screen">
+  <div class="head">
+    <div><div class="loc">Loloma, California</div><div class="date">Saturday, August 22</div></div>
+    <div class="upd"><span class="dot"></span>Live station<br>Updated 1:51 PM</div>
+  </div>
+  <div class="main">
+    <div class="hero">
+      <svg class="ic"><use href="#i-partly"/></svg>
+      <div class="temp">86<sup>&deg;F</sup></div>
+      <div class="cond">Partly Cloudy</div>
+      <div class="feels">Feels like 83&deg;</div>
+    </div>
+    <div class="metrics">
+      <div class="m"><svg class="ic"><use href="#i-sunrise"/></svg><div><div class="mv">6:30 AM</div><div class="ml">Sunrise</div></div></div>
+      <div class="m"><svg class="ic"><use href="#i-sunset"/></svg><div><div class="mv">7:51 PM</div><div class="ml">Sunset</div></div></div>
+      <div class="m"><svg class="ic"><use href="#i-wind"/></svg><div><div class="mv">9.6 mph</div><div class="ml">Wind NW</div></div></div>
+      <div class="m"><svg class="ic"><use href="#i-gauge"/></svg><div><div class="mv">29.98"</div><div class="ml">Pressure</div></div></div>
+      <div class="m"><svg class="ic"><use href="#i-drop"/></svg><div><div class="mv">30%</div><div class="ml">Humidity</div></div></div>
+      <div class="m"><svg class="ic"><use href="#i-uv"/></svg><div><div class="mv">7 &middot; High</div><div class="ml">UV Index</div></div></div>
+    </div>
+  </div>
+  <div class="fc">
+    <div class="fc-row">
+      <div class="day today"><div class="dn">Today</div><svg class="di"><use href="#i-partly"/></svg><div class="hi">82&deg;</div><div class="lo">62&deg;</div></div>
+      <div class="day"><div class="dn">Sun</div><svg class="di"><use href="#i-partly"/></svg><div class="hi">89&deg;</div><div class="lo">58&deg;</div></div>
+      <div class="day"><div class="dn">Mon</div><svg class="di"><use href="#i-sun"/></svg><div class="hi">82&deg;</div><div class="lo">59&deg;</div></div>
+      <div class="day"><div class="dn">Tue</div><svg class="di"><use href="#i-partly"/></svg><div class="hi">80&deg;</div><div class="lo">60&deg;</div></div>
+      <div class="day"><div class="dn">Wed</div><svg class="di"><use href="#i-moon"/></svg><div class="hi">82&deg;</div><div class="lo">57&deg;</div></div>
+      <div class="day"><div class="dn">Thu</div><svg class="di"><use href="#i-cloud"/></svg><div class="hi">82&deg;</div><div class="lo">60&deg;</div></div>
+    </div>
+    <div class="cap">Live from the Loloma WittBoy station &middot; 6-day outlook from met.no &middot; refreshes every 10 minutes</div>
+  </div>
+</div></div>
+</body>
+</html>
